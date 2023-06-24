@@ -43,86 +43,127 @@ RAW_DIR = 'raw_dir'
 DATA_LIST = 'data_list'
 PID_LIST = 'pid_list'
 
+def get_data_root_path():
+    node_name = os.uname().nodename
+    if 'radio-gpu' in node_name:
+        im_root_path = '/mnt/fast-disk1/mjc/AutoRecist/'
+        ann_root_path = '/mnt/fast-data/mjc/AutoRECIST/'
+    elif 'medphys' in node_name:
+        im_root_path = '/raid/cialab/mjc/AutoRecist/'
+        ann_root_path = im_root_path
+    else:
+        print('!Warning by MJC: node_name is unknown so the data_root_path is empty!')
+        im_root_path = ann_root_path = ''
+    return im_root_path , ann_root_path
+
+im_root_path , ann_root_path = get_data_root_path()
 # Available datasets
 DATASETS = {
+    'inference': {
+        IM_DIR:
+            im_root_path,
+        ANN_FN:
+            ann_root_path + 'Annotations/inference.json'
+    },
+    'PDS_Q5_22Cat_train': {
+        IM_DIR:
+            im_root_path,
+        ANN_FN:
+            ann_root_path + 'Annotations/AMGEN_PRIME_CUIMC_20210909_train.json'
+    },
+    'PDS_Q5_22Cat_val': {
+        IM_DIR:
+            im_root_path,
+        ANN_FN:
+            ann_root_path + 'Annotations/AMGEN_PRIME_CUIMC_20210909_val.json'
+    },
     'PDS_Q2_A&C_22Cat_train': {
         IM_DIR:
-            '/',
+            im_root_path,
         ANN_FN:
-            '/mnt/fast-data/mjc/AutoRECIST/Annotations/AMGEN_PRIME&CUIMC_20210228.json'
+            ann_root_path + '/Annotations/AMGEN_PRIME&CUIMC_20210228.json'
     },
     'PDS_CUIMC_train': {
         IM_DIR:
-            '/',
+            im_root_path,
         ANN_FN:
-            '/mnt/fast-data/mjc/AutoRECIST/Annotations/CUIMC_20201027_z.json'
+            ann_root_path + '/Annotations/CUIMC_20201027_z.json'
     },
     'PDS_AMGEN_20020408_train': {
         IM_DIR:
-            '/',
+            im_root_path,
         ANN_FN:
-            '/mnt/fast-data/mjc/AutoRECIST/Annotations/AMGEN_20020408_20201027_z.json'
+            ann_root_path + '/Annotations/AMGEN_20020408_20201027_z.json'
     },
     'PDS_AMGEN_PRIME_train': {
         IM_DIR:
-            '/',
+            im_root_path,
         ANN_FN:
-            '/mnt/fast-data/mjc/AutoRECIST/Annotations/AMGEN_PRIME_20201027_z.json'
+            ann_root_path + '/Annotations/AMGEN_PRIME_20201027_z.json'
     },
     'PDS_CUIMC_test': {
         IM_DIR:
-            '/',
+            im_root_path,
         ANN_FN:
-            '/mnt/fast-data/mjc/AutoRECIST/Annotations/CUIMC_20201027_z.json'
+            ann_root_path + '/Annotations/CUIMC_20201027_z.json'
     },
     'PDS_AMGEN_20020408_test': {
         IM_DIR:
-            '/',
+            im_root_path,
         ANN_FN:
-            '/mnt/fast-data/mjc/AutoRECIST/Annotations/AMGEN_20020408_20201027_z.json'
+            ann_root_path + '/Annotations/AMGEN_20020408_20201027_z.json'
     },
     'PDS_AMGEN_PRIME_test': {
         IM_DIR:
-            '/',
+            im_root_path,
         ANN_FN:
-            '/mnt/fast-data/mjc/AutoRECIST/Annotations/AMGEN_PRIME_20201027_z.json'
+            ann_root_path + '/Annotations/AMGEN_PRIME_20201027_z.json'
+    },
+    'Cougar302_80pts_test': {
+        IM_DIR:
+            im_root_path,
+        ANN_FN:
+            ann_root_path + '/Annotations/Cougar302_80pts.json'
     },
     'PDS_AMGEN_PRIME_22Cat_train': {
         IM_DIR:
-            '/',
+            im_root_path,
         ANN_FN:
-            '/mnt/fast-data/mjc/AutoRECIST/Annotations/AMGEN_PRIME_20201202.json'
+            ann_root_path + '/Annotations/AMGEN_PRIME_20201202.json'
     },
     'PDS_AMGEN_PRIME_22Cat_test': {
         IM_DIR:
-            '/',
+            im_root_path,
         ANN_FN:
-            '/mnt/fast-data/mjc/AutoRECIST/Annotations/AMGEN_PRIME_20201202.json'
+            ann_root_path + '/Annotations/AMGEN_PRIME_20201202.json'
     },
     'PDS_AMGEN_20020408_22Cat_train': {
         IM_DIR:
-            '/',
+            im_root_path,
         ANN_FN:
-            '/mnt/fast-data/mjc/AutoRECIST/Annotations/AMGEN_20020408_20201202.json'
+            ann_root_path + '/Annotations/AMGEN_20020408_20201202.json'
     },
     'PDS_AMGEN_20020408_22Cat_test': {
         IM_DIR:
-            '/',
+            im_root_path,
         ANN_FN:
-            '/mnt/fast-data/mjc/AutoRECIST/Annotations/AMGEN_20020408_20201202.json'
+            ann_root_path + '/Annotations/AMGEN_20020408_20201202.json'
     },
     'PDS_CUIMC_22Cat_train': {
         IM_DIR:
-            '/',
+            im_root_path,
         ANN_FN:
-            '/mnt/fast-data/mjc/AutoRECIST/Annotations/CUIMC_20201202.json'
+            ann_root_path + '/Annotations/CUIMC_20201202.json'
     },
     'PDS_CUIMC_22Cat_test': {
         IM_DIR:
-            '/',
+            im_root_path,
         ANN_FN:
-            '/mnt/fast-data/mjc/AutoRECIST/Annotations/CUIMC_20201202.json'
+            ann_root_path + '/Annotations/CUIMC_20201202.json'
     },
+    #Below is useless!
+    #
+    #
     'lungbinary_1031_train': {
         IM_DIR:
             _DATA_DIR + '/lung_det/rgb_slice_norm1.0/',

@@ -125,7 +125,7 @@ class RoiDataLoader(data.Dataset):
         
         
         if not contours:
-            print('no segms!!')
+            # print('no segms!!')
             if im_scale != 1:
                 mask = cv2.resize(mask, None, None, fx=im_scale, fy=im_scale, 
                     interpolation=cv2.INTER_NEAREST)

@@ -166,9 +166,7 @@ def get_gt_and_pred_vols(oneCT, site_list , vol_shape , D_z_index, union_mask=Tr
 
             ix = [a for a,b in enumerate(aroidb['gt_classes']) if int(b) in site_list]
             contours = [ aroidb['segms'][int(kk)] for kk in ix ]
-            if not contours:
-                continue
-
+            
             for c in contours:
                 if len(c): #gt
                     new = polys_to_mask(c , height , width)
@@ -254,7 +252,7 @@ def cal_seg_metrics( vol_gt , vol_pred):
 #     return Metrics, MissedLesions
 '''
 
-def vols_seg_results(vol_gt , vol_pred , CTname='abc' , gt_keep_largest=None , pred_keep_largest=None , pred_keep_best=True):
+def vols_seg_results(vol_gt , vol_pred , CTname='abc' , gt_keep_largest=None , pred_keep_largest=None , pred_keep_best=True , reduceFP=True):
     ## This version add 
 
     # print('vols_seg_results is New Version that include both hit and miss cases')
@@ -273,6 +271,17 @@ def vols_seg_results(vol_gt , vol_pred , CTname='abc' , gt_keep_largest=None , p
     ix2 = l_pred>0
     l_pred = l_pred[ix2] #background pixels are labeled as 0, so we exclude them
     c_pred = c_pred[ix2]
+
+    if reduceFP:
+        ix2 = l_pred>0
+        for i, p in enumerate(l_pred):
+            z = np.where(labels_pred == p)[0]
+            if len( set(z) )<=1:
+                ix2[i]=False
+
+        l_pred = l_pred[ix2] #background pixels are labeled as 0, so we exclude them
+        c_pred = c_pred[ix2]
+
 
     if gt_keep_largest:
         l_gt_ix = c_gt.argsort()[-gt_keep_largest:][::-1]
@@ -312,24 +321,91 @@ def vols_seg_results(vol_gt , vol_pred , CTname='abc' , gt_keep_largest=None , p
     else:
         for g in l_gt:
             vg = labels_gt == g
-            VPs = np.zeros(labels_pred.shape,dtype=bool)
-            merge = 0
+
             for p in l_pred:
-                vp = labels_pred == p
-                intersection1 = np.sum( np.logical_and(vg, vp) )
-                if intersection1 > 0:
-                    VPs = np.logical_or(VPs, vp)
-                    merge+=1
-                    
-            [iou_score, dice_score, over_seg, under_seg, area_gt, area_pred, intersection, union] = cal_seg_metrics(vg , VPs)
-            
-            Metrics.append( [ CTname, g, merge,len(l_gt),len(l_pred),
-                    iou_score, dice_score, over_seg, under_seg, 
-                    area_gt, area_pred, intersection, union] )
+                vp = labels_pred == p                  
+                [iou_score, dice_score, over_seg, under_seg, area_gt, area_pred, intersection, union] = cal_seg_metrics(vg , vp) 
+                Metrics.append( [ CTname, g, p,len(l_gt),len(l_pred),
+                        iou_score, dice_score, over_seg, under_seg, 
+                        area_gt, area_pred, intersection, union] )
             
     return Metrics
 
 
 
-#done 07/19 5:25 JM
+#done 07/19/2021 5:25 JM
 
+def segmentations2mask(segmentations,height,width):
+    for j in len(segmentations):
+        contours = segmentations[j]
+
+        for c in contours:#union pred
+            if len(c)>=6:
+                new = polys_to_mask([c] , height , width) 
+
+
+def remove_single_slice_segms(oneCT):
+    # D_CT[dicom_path][slice_no] = [aroidb , bboxes , segmentations]
+
+    for s in oneCT: # s is slice_no of the CT images
+        
+        aroidb , bboxes , segmentations = oneCT[s]
+        height, width = aroidb['height'] , aroidb['width']
+
+        for j in segmentations:
+            keep_ix = []
+            adjacent_slices = np.zeros((height,width))
+
+            if s-1 in oneCT and oneCT[s-1][2][j]:
+                upper = polys_to_mask(oneCT[s-1][2][j] , height, width)
+                adjacent_slices = np.logical_or(adjacent_slices,upper)
+
+            if s+1 in oneCT and oneCT[s+1][2][j]:
+                lower = polys_to_mask(oneCT[s+1][2][j] , height, width)
+                adjacent_slices = np.logical_or(adjacent_slices,lower)
+
+            contours = segmentations[j]
+
+            for ix , c in enumerate(contours):
+                if len(c)>=6:
+                    one_mask = polys_to_mask([c] , height , width) 
+                    intersection = np.sum( np.logical_and(adjacent_slices,one_mask) )
+                    if intersection:
+                        keep_ix.append(ix)
+            segmentations[j] = [segmentations[j][ix] for ix in keep_ix]
+            bboxes[j] = [bboxes[j][ix] for ix in keep_ix]
+        oneCT[s] = [aroidb , bboxes , segmentations]
+    return oneCT
+
+
+# def save_oneCT_AI_predictions(oneCT, savepath,SHOW_LABEL = True,SHOW_BOX = False,...
+#     SHOW_MASK = True,SHOW_UNION_MASK= False,SHOW_MASK_LABEL = True,SHOW_GT_MASK = False):
+#     if not os.path.exists(savepath):
+#         os.makedirs(savepath)
+
+
+def convert_name_compact(name):
+    name = name.replace('/mnt/fast-disk1/mjc/AutoRecist/Pngs/','')
+    name = name.replace('/mnt/fast-disk1/mjc/AutoRecist/Inputs/','')
+    new = name.replace('/','_')
+    return new
+
+
+# <preset name="Brain" modality="CT" window="110" level="35" key="51" />
+# <preset name="Abdomen" modality="CT" window="320" level="50" key="52" />
+# <preset name="Mediastinum" modality="CT" window="400" level="80" key="53" />
+# <preset name="Bone" modality="CT" window="2000" level="350" key="54" />
+# <preset name="Lung" modality="CT" window="1500" level="-500" key="55" /> -1250 250
+# <preset name="MIP" modality="CT" window="380" level="120" key="56" />
+def get_proper_CT_windowing():
+    if all_segms[9][i]:
+        return -1250 , 250
+    if all_segms[8][i] or all_segms[7][i] :
+        return -160 , 240
+    if all_segms[5][i]:
+        return -750 , 1350
+    return None
+    
+
+
+    

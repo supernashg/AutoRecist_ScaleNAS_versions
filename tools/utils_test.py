@@ -367,6 +367,24 @@ for d in newcats:
 def ix2labelname(ix):
     return D_cls[ix]
 
+def compare_site(location , site_list):
+    for i in site_list:
+        if location == ix2labelname(i):
+            return True
+    return False
+
+
+def get_21_lesion_location_cls():
+    D_cls = {}
+    for d in newcats:
+        id_ = d['id']
+        name = d['name']
+        D_cls[name] = id_
+    return D_cls
+Dict = get_21_lesion_location_cls()
+def labelname2ix( location  ):
+    return Dict[location]
+
 def overlay_class_names(self, image, predictions):
     """
     Adds detected class names and scores in the positions defined by the
@@ -407,7 +425,12 @@ def polys_to_mask(polygons, height, width):
     return mask
 def mask_to_ploys(mask):
     # height,width = mask.shape
-    contours,_= cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    if cv2.__version__[0] =='3':
+        _,contours,_= cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    elif cv2.__version__[0] =='4':
+        contours,_= cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    else:
+        print('cv2 version is not support.')
     segmentation = []
     for contour in contours:
         # Valid polygons have >= 6 coordinates (3 points)
@@ -462,6 +485,22 @@ def union_ploys_to_mask(ploys , height=512 , width=512):
     mask = np.array(mask > 0, dtype=np.float32)
     return mask
 
+
+def get_proper_CT_windowing(segmentations):
+
+    if 8 in segmentations and segmentations[8] :
+        return -160 , 240
+    if 7 in segmentations and segmentations[7] :
+        return -160 , 240    
+    if 9 in segmentations and segmentations[9] :
+        return -1250 , 250
+    if 5 in segmentations and segmentations[5] :
+        return -750 , 1350
+    return None
+
+
+
+    
 # def get_gt_and_pred_vols(oneCT,site_list):
 #     slice_no_list =list ( oneCT.keys() )
 

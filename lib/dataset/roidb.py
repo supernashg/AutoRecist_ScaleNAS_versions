@@ -84,7 +84,7 @@ def combined_roidb_for_training(dataset_names, proposal_files):
 
     for r in roidbs[1:]:
         roidb.extend(r)
-    roidb = filter_for_training(roidb)
+    # roidb = filter_for_training(roidb)
     if cfg.TRAIN.ASPECT_GROUPING or cfg.TRAIN.ASPECT_CROPPING:
         logger.info('Computing image aspect ratios and ordering the ratios...')
         ratio_list, ratio_index = rank_for_training(roidb)

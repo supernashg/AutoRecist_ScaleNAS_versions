@@ -563,8 +563,9 @@ class SuperScaleNet_Seg(nn.Module):
 
             if len(cfg.EXCLUDE_LAYERS):
                 for k in cfg.EXCLUDE_LAYERS:
-                    del pretrained_dict[k]
-                    logger.warn('del {} in pretrained_dict'.format(k))
+                    if k in pretrained_dict:
+                        del pretrained_dict[k]
+                        logger.warn('del {} in pretrained_dict'.format(k))
 
             model_dict.update(pretrained_dict)
             self.load_state_dict(model_dict)
