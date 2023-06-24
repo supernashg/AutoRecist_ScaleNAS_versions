@@ -21,10 +21,68 @@ class RoiDataLoader(data.Dataset):
         self._num_classes = num_classes
         self.training = training
         self.DATA_SIZE = len(self._roidb)
+        # self.class_weights = None
+        self.class_weights = torch.FloatTensor([0.4, 9.6, 9.6, 9.6, 
+                                                9.6, 9.6, 9.6, 9.6,
+                                                9.6, 9.6, 9.6, 9.6,
+                                                9.6, 9.6, 9.6, 9.6,
+                                                9.6, 9.6, 9.6, 9.6,
+                                                9.6, 9.6])
+        print('class_weights are:')
+        print(self.class_weights)
 
-    def __getitem__(self, index_tuple):
-        index, ratio = index_tuple
+        ignore_label = cfg.TRAIN.IGNORE_LABEL
+        self.label_mapping = {-1: ignore_label, 0: 0, 
+                              1: 1, 2: 2, 3: 3, 4: 4, 
+                              5: 5, 6: 6, 7: 7, 8: 8, 
+                              9: 9, 10: 10, 11: 11, 
+                              12: 12, 
+                              13: 13, 14: 14, 15: 15, 
+                              16: 16, 17: 17, 18: 18, 
+                              19: 19, 
+                              20: 20, 
+                              21: 21}
+       # ignore background 
+       # to consist with cisyscapes 0~18 classes
+       # ovary -> abdomen 12:1, 19:12
+       # stomach -> abdomen 20:1, 21:0
+
+       # newcats = [{'supercategory': 'DeepLesion', 'id': 1, 'name': 'abdomen'},
+       # {'supercategory': 'DeepLN', 'id': 2, 'name': 'abdomen LN'},
+       # {'supercategory': 'DeepLesion', 'id': 3, 'name': 'adrenal'},
+       # {'supercategory': 'DeepLN', 'id': 4, 'name': 'axillary LN'},
+       # {'supercategory': 'DeepLesion', 'id': 5, 'name': 'bone'},
+       # {'supercategory': 'DeepLN', 'id': 6, 'name': 'inguinal LN'},
+       # {'supercategory': 'DeepLesion', 'id': 7, 'name': 'kidney'},
+       # {'supercategory': 'DeepLesion', 'id': 8, 'name': 'liver'},
+       # {'supercategory': 'DeepLesion', 'id': 9, 'name': 'lung'},
+       # {'supercategory': 'DeepLN', 'id': 10, 'name': 'mediastinum LN'},
+       # {'supercategory': 'DeepLN', 'id': 11, 'name': 'neck LN'},
+       # {'supercategory': 'DeepLesion', 'id': 12, 'name': 'ovary'},
+       # {'supercategory': 'DeepLesion', 'id': 13, 'name': 'pancreas'},
+       # {'supercategory': 'DeepLN', 'id': 14, 'name': 'pelvic LN'},
+       # {'supercategory': 'DeepLesion', 'id': 15, 'name': 'pelvis'},
+       # {'supercategory': 'DeepLesion', 'id': 16, 'name': 'pleural'},
+       # {'supercategory': 'DeepLN', 'id': 17, 'name': 'retroperitoneal LN'},
+       # {'supercategory': 'DeepLesion', 'id': 18, 'name': 'soft tissue'},
+       # {'supercategory': 'DeepLesion', 'id': 19, 'name': 'spleen'},
+       # {'supercategory': 'DeepLesion', 'id': 20, 'name': 'stomach'},
+       # {'supercategory': 'DeepLesion', 'id': 21, 'name': 'thyroid'} ]
+
+    def convert_label(self, label, inverse=False):
+        temp = label.copy()
+        if inverse:
+            for v, k in self.label_mapping.items():
+                label[temp == k] = v
+        else:
+            for k, v in self.label_mapping.items():
+                label[temp == k] = v
+        return label
+
+    def __getitem__(self, index):
+
         single_db = [self._roidb[index]]
+        im_name = self._roidb[index]['image']
         blobs, valid = get_minibatch(single_db)
         #TODO: Check if minibatch is valid ? If not, abandon it.
         # Need to change _worker_loop in torch.utils.data.dataloader.py.
@@ -67,17 +125,24 @@ class RoiDataLoader(data.Dataset):
         
         
         if not contours:
-            print('no segms!!')
-            mask = cv2.resize(mask, None, None, fx=im_scale, fy=im_scale, 
-                interpolation=cv2.INTER_NEAREST)
-            return blobs['data'].copy(), mask.copy(), im_shape, index
+            # print('no segms of gold standards!!')
+            if im_scale != 1:
+                mask = cv2.resize(mask, None, None, fx=im_scale, fy=im_scale, 
+                    interpolation=cv2.INTER_NEAREST)
+            mask = self.convert_label(mask)
+            return blobs['data'].copy(), mask.copy(), im_shape, im_name
         else:
             for c , gt_class in zip( contours , gt_classes):
                 if len(c): #gt
-                    mask += polys_to_mask(c , height , width) * gt_class
-            mask = cv2.resize(mask, None, None, fx=im_scale, fy=im_scale, 
-                interpolation=cv2.INTER_NEAREST)
-            return blobs['data'].copy(), mask.copy(), im_shape, index
+                    new = polys_to_mask(c , height , width)
+                    mask[new>0] = gt_class
+
+            if im_scale != 1:
+                mask = cv2.resize(mask, None, None, fx=im_scale, fy=im_scale, 
+                    interpolation=cv2.INTER_NEAREST)
+
+            mask = self.convert_label(mask)
+            return blobs['data'].copy(), mask.copy(), im_shape, im_name
 
     def crop_data(self, blobs, ratio):
         data_height, data_width = map(int, blobs['im_info'][:2])

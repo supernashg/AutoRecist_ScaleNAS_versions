@@ -69,11 +69,10 @@ class CUMCLesions(BaseDataset):
         self.flip = flip
         self.center_crop_test = center_crop_test
         
-        self.img_list = [line.strip().split() for line in open(root+list_path)]
-
-        self.files = self.read_files()
-        if num_samples:
-            self.files = self.files[:num_samples]
+        # self.img_list = [line.strip().split() for line in open(root+list_path)]
+        # self.files = self.read_files()
+        # if num_samples:
+        #     self.files = self.files[:num_samples]
 
         self.label_mapping = {-1: ignore_label, 0: ignore_label, 
                               1: ignore_label, 2: ignore_label, 
@@ -181,28 +180,6 @@ class CUMCLesions(BaseDataset):
             save_img.save(os.path.join(sv_path, name[i]+'.png'))
 
         
-    def __getitem__(self, index):
-        item = self.files[index]
-        name = item["name"]
-        image = cv2.imread(os.path.join(self.root,'cityscapes',item["img"]),
-                           cv2.IMREAD_COLOR)
-        size = image.shape
-
-        if 'test' in self.list_path:
-            image = self.input_transform(image)
-            image = image.transpose((2, 0, 1))
-
-            return image.copy(), np.array(size), name
-
-        label = cv2.imread(os.path.join(self.root,'cityscapes',item["label"]),
-                           cv2.IMREAD_GRAYSCALE)
-        label = self.convert_label(label)
-
-        image, label = self.gen_sample(image, label, 
-                                self.multi_scale, self.flip, 
-                                self.center_crop_test)
-
-        return image.copy(), label.copy(), np.array(size), name
 
     def __getitem__(self, index_tuple):
         index, ratio = index_tuple

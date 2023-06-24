@@ -30,8 +30,8 @@ import utils.segms as segm_utils
 import utils.blob as blob_utils
 from config import cfg
 from .json_dataset import JsonDataset
-from .mammo_json_dataset import MammoDataset
-from .lesion_json_dataset import LesionDataset
+# from .mammo_json_dataset import MammoDataset
+# from .lesion_json_dataset import LesionDataset
 logger = logging.getLogger(__name__)
 
 
@@ -54,6 +54,8 @@ def combined_roidb_for_training(dataset_names, proposal_files):
             proposal_file=proposal_file,
             crowd_filter_thresh=cfg.TRAIN.CROWD_FILTER_THRESH
         )
+        print(1, len(roidb))
+
         # Added to run with less training data
         #roidb = roidb[:int(0.6*len(roidb))]
         if cfg.TRAIN.USE_ADJACENT_LAYER:
@@ -77,9 +79,12 @@ def combined_roidb_for_training(dataset_names, proposal_files):
     assert len(dataset_names) == len(proposal_files)
     roidbs = [get_roidb(*args) for args in zip(dataset_names, proposal_files)]
     roidb = roidbs[0]
+
+    print(2, len(roidb))
+
     for r in roidbs[1:]:
         roidb.extend(r)
-    roidb = filter_for_training(roidb)
+    # roidb = filter_for_training(roidb)
     if cfg.TRAIN.ASPECT_GROUPING or cfg.TRAIN.ASPECT_CROPPING:
         logger.info('Computing image aspect ratios and ordering the ratios...')
         ratio_list, ratio_index = rank_for_training(roidb)
@@ -92,6 +97,7 @@ def combined_roidb_for_training(dataset_names, proposal_files):
     logger.info('done')
 
     _compute_and_log_stats(roidb)
+    print(4, len(roidb))
 
     return roidb, ratio_list, ratio_index
 
