@@ -41,7 +41,7 @@ def reduce_tensor(inp):
     return reduced_inp
 
 def train(config, train_loader, model, criterion, optimizer, epoch,
-          output_dir, tb_log_dir, writer_dict, oneshot_train=False, teacher_model=None, kd_ratio=1.0):
+          output_dir, tb_log_dir, writer_dict, ofa_train=False, teacher_model=None, kd_ratio=1.0):
     batch_time = AverageMeter()
     data_time = AverageMeter()
     losses = AverageMeter()
@@ -65,7 +65,7 @@ def train(config, train_loader, model, criterion, optimizer, epoch,
         optimizer.zero_grad()
         # get group idx, 0: the min model, 10: the max model
         group_idx = i % group_nums
-        if oneshot_train:
+        if ofa_train:
             if config.TRAIN.GROUP_SAMPLING:
                 if config.TRAIN.SANDWICH_RULE:
                     if group_idx == 0:

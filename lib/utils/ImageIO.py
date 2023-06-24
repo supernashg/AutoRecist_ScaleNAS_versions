@@ -100,7 +100,7 @@ def load_multislice_16bit_png(roidb):
     if cfg.LESION.USE_SPECIFIC_WINDOWS:
         im = windowing(im, windows)
     elif cfg.LESION.MULTI_MODALITY:
-        im = multi_windowing(im[:,:,:])
+        im = multi_windowing(im)
     else:
         im = windowing(im, cfg.WINDOWING)
         #im = windowing(im, [-175,275])
@@ -147,7 +147,10 @@ def multi_windowing(im):
         im_win1 = windowing(im, windows[0])
         im_win2 = windowing(im, windows[1])
         im_win3 = windowing(im, windows[2])
-        im = np.concatenate((im_win1, im_win2, im_win3),axis=2)
+        if im.ndim==2:
+            im = np.stack((im_win1, im_win2, im_win3),axis=2)
+        else:
+            im = np.concatenate((im_win1, im_win2, im_win3),axis=2)
     #elif cfg.LESION.NUM_IMAGES_3DCE == 9:
         #im_win1 = windowing(im, windows[0])
         #im_win2 = windowing(im, windows[1])

@@ -251,7 +251,7 @@ def main():
     model = nn.SyncBatchNorm.convert_sync_batchnorm(model)
     model = model.to(device)
     model = nn.parallel.DistributedDataParallel(
-        model, device_ids=[args.lol
+        model, device_ids=[args.local_rank], output_device=args.local_rank, find_unused_parameters=True)
     # optimizer
     if cfg.TRAIN.OPTIMIZER == 'sgd':
         optimizer = torch.optim.SGD([{'params':

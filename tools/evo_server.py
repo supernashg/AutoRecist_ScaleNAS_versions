@@ -28,12 +28,12 @@ def parse_args():
                         default=0.25,
                         type=float)
     parser.add_argument('--mutation_prob',
-                        default=0.2,
+                        default=0.5,
                         type=float)
 
     parser.add_argument('--evo_file',
                         help='evo_file has masks to be validated',
-                        default='./evo_files/evo_file_w32_256.txt',
+                        default='./evo_files/lesion_evo_file.txt',
                         type=str)
     parser.add_argument('--masks_dir',
                         help='dir of masks',
@@ -70,7 +70,7 @@ def do_cross_over(mask_base, mask_evo, prob=0.25):
 
     for module_id in range(len(mask_base) - 1):
         if random.random() < prob:
-            print('replacing module {}'.format(module_id))
+            # print('replacing module {}'.format(module_id))
             mask_base[module_id] = mask_evo[module_id]
 
     return mask_base
@@ -102,7 +102,7 @@ def main():
                 continue
             with open(evo_file, "r+") as f:
                 if not lockfile(f):
-                    time.sleep(1)
+                    time.sleep(10)
                     print('Evo waiting for loading...')
                     continue  # re-open
                 lines = f.readlines()
@@ -116,15 +116,16 @@ def main():
                         flops = float(_line[2])
                         ap = float(_line[3])
                         masks_w_ap.append([id, params, flops, ap])
-                if len(masks_w_ap) % args.population != 0:  # no arch
-                    print('Cur masks {} Waiting for validation results'.format(len(masks_w_ap)))
-                    time.sleep(10)
-                    continue  # re-open LOOP-1
-                else:
-                    break  # LOOP-1
+            if len(masks_w_ap) % args.population != 0:  # no arch
+                print('Cur masks {} Waiting for validation results'.format(len(masks_w_ap)))
+                time.sleep(60)
+                continue  # re-open LOOP-1
+            else:
+                break  # LOOP-1
 
         cur_masks_num = len(masks_w_ap)
         masks_w_ap_top = select_masks(masks_w_ap, args.population)
+        print(masks_w_ap_top)
         BASE_DIR = args.masks_dir
         masks_list = []
         for m, _, _, _ in masks_w_ap_top:

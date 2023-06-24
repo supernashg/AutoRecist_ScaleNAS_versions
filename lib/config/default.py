@@ -11,7 +11,6 @@ import os
 from yacs.config import CfgNode as CN
 
 
-
 _C = CN()
 
 _C.OUTPUT_DIR = ''
@@ -91,7 +90,7 @@ _C.DATASET.COLOR_RGB = False
 
 
 # segmentation related params
-_C.DATASET.NUM_CLASSES = 19
+_C.DATASET.NUM_CLASSES = 22
 _C.DATASET.EXTRA_TRAIN_SET = ''
 
 # train
@@ -104,7 +103,7 @@ _C.TRAIN.NONBACKBONE_KEYWORDS = []
 _C.TRAIN.NONBACKBONE_MULT = 10
 
 # for segmentation
-_C.TRAIN.IMAGE_SIZE = [1024, 512]  # width * height
+_C.TRAIN.IMAGE_SIZE = [512, 512]  # width * height
 _C.TRAIN.BASE_SIZE = 2048
 _C.TRAIN.DOWNSAMPLERATE = 1
 _C.TRAIN.FLIP = True
@@ -147,7 +146,7 @@ _C.TRAIN.SUBNET_NUM = 1
 _C.TEST = CN()
 
 # segmentation
-_C.TEST.IMAGE_SIZE = [2048, 1024]
+_C.TEST.IMAGE_SIZE = [512, 542]
 _C.TEST.BASE_SIZE = 2048
 _C.TEST.MULTI_SCALE = False
 _C.TEST.NUM_SAMPLES = 0
@@ -175,22 +174,25 @@ _C.TEST.MODEL_FILE = ''
 # debug
 _C.DEBUG = CN()
 _C.DEBUG.DEBUG = False
+_C.DEBUG.JSON = False
 _C.DEBUG.SAVE_BATCH_IMAGES_GT = False
 _C.DEBUG.SAVE_BATCH_IMAGES_PRED = False
 _C.DEBUG.SAVE_HEATMAPS_GT = False
 _C.DEBUG.SAVE_HEATMAPS_PRED = False
 
-
-
-
-
-
 # Jingchen added for CUMC Lesion Data
-
 # /lib/roi_data/loader.py
 _C.MODEL.LR_VIEW_ON = False
 _C.MODEL.GIF_ON = False
 _C.MODEL.LRASY_MAHA_ON = False
+
+
+
+
+
+
+_C.TRAIN.VIS_ANCHOR_DIR = './anchor_vis/'
+_C.TRAIN.VIS_ANCHOR = False
 
 _C.TRAIN.IMS_PER_BATCH = 1
 _C.TRAIN.ASPECT_GROUPING = True
@@ -211,12 +213,71 @@ _C.TRAIN.ASPECT_CROPPING = False
 _C.TRAIN.ASPECT_HI = 2
 _C.TRAIN.ASPECT_LO = 0.5
 
+_C.TRAIN.IGNORE_ON = False
+
+_C.TRAIN.FG_FRACTION = 0.25
+
+# Overlap threshold for a ROI to be considered foreground (if >= FG_THRESH)
+_C.TRAIN.FG_THRESH = 0.5
+
+# Overlap threshold for a ROI to be considered background (class = 0 if
+# overlap in [LO, HI))
+_C.TRAIN.BG_THRESH_HI = 0.5
+_C.TRAIN.BG_THRESH_LO = 0.0
+
+# ---------------------------------------------------------------------------- #
+# RPN training options
+# ---------------------------------------------------------------------------- #
+
+# Minimum overlap required between an anchor and ground-truth box for the
+# (anchor, gt box) pair to be a positive example (IOU >= thresh ==> positive RPN
+# example)
+_C.TRAIN.RPN_POSITIVE_OVERLAP = 0.7
+
+# Maximum overlap allowed between an anchor and ground-truth box for the
+# (anchor, gt box) pair to be a negative examples (IOU < thresh ==> negative RPN
+# example)
+_C.TRAIN.RPN_NEGATIVE_OVERLAP = 0.3
+
+# Target fraction of foreground (positive) examples per RPN minibatch
+_C.TRAIN.RPN_FG_FRACTION = 0.5
+
+# Total number of RPN examples per image
+_C.TRAIN.RPN_BATCH_SIZE_PER_IM = 256
+
+# NMS threshold used on RPN proposals (used during end-to-end training with RPN)
+_C.TRAIN.RPN_NMS_THRESH = 0.7
+
+# Number of top scoring RPN proposals to keep before applying NMS (per image)
+# When FPN is used, this is *per FPN level* (not total)
+_C.TRAIN.RPN_PRE_NMS_TOP_N = 12000
+
+# Number of top scoring RPN proposals to keep after applying NMS (per image)
+# This is the total number of RPN proposals produced (for both FPN and non-FPN
+# cases)
+_C.TRAIN.RPN_POST_NMS_TOP_N = 2000
+
+# Remove RPN anchors that go outside the image by RPN_STRADDLE_THRESH pixels
+# Set to -1 or a large value, e.g. 100000, to disable pruning anchors
+_C.TRAIN.RPN_STRADDLE_THRESH = 0
+
+# Proposal height and width both need to be greater than RPN_MIN_SIZE
+# (at orig image scale; not scale used during training or inference)
+_C.TRAIN.RPN_MIN_SIZE = 0
+
+# Filter proposals that are inside of crowd regions by CROWD_FILTER_THRESH
+# "Inside" is measured as: proposal-with-crowd intersection area divided by
+# proposal area
+_C.TRAIN.CROWD_FILTER_THRESH = 0.7
+
+# Ignore ground-truth objects with area < this threshold
+_C.TRAIN.GT_MIN_AREA = -1
 
 # /lib/roi_data/minibatch.py
 _C.RPN = CN()
 _C.RPN.RPN_ON = True
 
-_C.TRAIN.SCALES = (800,)
+_C.TRAIN.SCALES = (512,)
 
 _C.RETINANET = CN()
 _C.RETINANET.RETINANET_ON = False
@@ -235,7 +296,53 @@ _C.TRAIN.MAX_SIZE = 800
 
 # /lib/utils/blob.py
 _C.FPN = CN()
+
+# FPN is enabled if True
+_C.FPN.FPN_ON = True
+
+# Channel dimension of the FPN feature levels
+_C.FPN.DIM = 256
+
+# Initialize the lateral connections to output zero if True
+_C.FPN.ZERO_INIT_LATERAL = False
+
+# Stride of the coarsest FPN level
+# This is needed so the input can be padded properly
 _C.FPN.COARSEST_STRIDE = 32
+
+#
+# FPN may be used for just RPN, just object detection, or both
+#
+
+# Use FPN for RoI transform for object detection if True
+_C.FPN.MULTILEVEL_ROIS = True
+# Hyperparameters for the RoI-to-FPN level mapping heuristic
+_C.FPN.ROI_CANONICAL_SCALE = 224  # s0
+_C.FPN.ROI_CANONICAL_LEVEL = 4  # k0: where s0 maps to
+# Coarsest level of the FPN pyramid
+_C.FPN.ROI_MAX_LEVEL = 5
+# Finest level of the FPN pyramid
+_C.FPN.ROI_MIN_LEVEL = 2
+
+# Use FPN for RPN if True
+_C.FPN.MULTILEVEL_RPN = True
+# Coarsest level of the FPN pyramid
+_C.FPN.RPN_MAX_LEVEL = 6
+# Finest level of the FPN pyramid
+_C.FPN.RPN_MIN_LEVEL = 2
+# FPN RPN anchor aspect ratios
+_C.FPN.RPN_ASPECT_RATIOS = (0.5, 1, 2)
+# RPN anchors start at this size on RPN_MIN_LEVEL
+# The anchor size doubled each level after that
+# With a default of 32 and levels 2 to 6, we get anchor sizes of 32 to 512
+_C.FPN.RPN_ANCHOR_START_SIZE = 16
+# [Infered Value] Scale for RPN_POST_NMS_TOP_N.
+# Automatically infered in training, fixed to 1 in testing.
+_C.FPN.RPN_COLLECT_SCALE = 1
+# Use extra FPN levels, as done in the RetinaNet paper
+_C.FPN.EXTRA_CONV_LEVELS = False
+# Use GroupNorm in the FPN-specific layers (lateral, etc.)
+_C.FPN.USE_GN = False
 
 # lib/utils/ImageIO.py:
 # Whether implemente histogram equalization
@@ -272,7 +379,7 @@ _C.LESION.DEBUG = False
 # For 3DCE architecture
 _C.LESION.USE_3DCE = False
 # Symbol M in the paper,can be 1,3,5,7,9...
-_C.LESION.NUM_IMAGES_3DCE = 9
+_C.LESION.NUM_IMAGES_3DCE = 1
 
 _C.LESION.MULTI_MODALITY = True
 # For multi modality,concat blobs before RPN
@@ -300,6 +407,24 @@ _C.LESION.USE_MULTI_WINDOWS = False
 # Added for implementing multi-context roi-pooling RCNN
 _C.LESION.MM_TEST= False
 
+
+_C.TRAIN.DATASETS = ('PDS_Q2_A&C_22Cat_train',)
+_C.TRAIN.PROPOSAL_FILES = ()
+_C.TRAIN.USE_ADJACENT_LAYER = False
+_C.TRAIN.USE_FLIPPED = True
+_C.TRAIN.USE_Z_FLIPPED = False
+_C.TRAIN.BBOX_THRESH = 0.5
+
+_C.VAL = CN()
+_C.VAL.DATASETS = ('PDS_AMGEN_20020408_22Cat_test',)
+_C.VAL.PROPOSAL_FILES = ()
+
+_C.MODEL.NUM_CLASSES = 22
+_C.MODEL.KEYPOINTS_ON = False
+_C.MODEL.CLS_AGNOSTIC_BBOX_REG = False
+_C.MODEL.BBOX_REG_WEIGHTS = (10.0, 10.0, 5.0, 5.0)
+
+_C.EXCLUDE_LAYERS = []#['last_layer.3.weight' ,'last_layer.3.bias']
 
 def update_config(cfg, args):
     cfg.defrost()

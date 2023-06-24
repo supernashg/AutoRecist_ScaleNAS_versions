@@ -45,6 +45,84 @@ PID_LIST = 'pid_list'
 
 # Available datasets
 DATASETS = {
+    'PDS_Q2_A&C_22Cat_train': {
+        IM_DIR:
+            '/',
+        ANN_FN:
+            '/mnt/fast-data/mjc/AutoRECIST/Annotations/AMGEN_PRIME&CUIMC_20210228.json'
+    },
+    'PDS_CUIMC_train': {
+        IM_DIR:
+            '/',
+        ANN_FN:
+            '/mnt/fast-data/mjc/AutoRECIST/Annotations/CUIMC_20201027_z.json'
+    },
+    'PDS_AMGEN_20020408_train': {
+        IM_DIR:
+            '/',
+        ANN_FN:
+            '/mnt/fast-data/mjc/AutoRECIST/Annotations/AMGEN_20020408_20201027_z.json'
+    },
+    'PDS_AMGEN_PRIME_train': {
+        IM_DIR:
+            '/',
+        ANN_FN:
+            '/mnt/fast-data/mjc/AutoRECIST/Annotations/AMGEN_PRIME_20201027_z.json'
+    },
+    'PDS_CUIMC_test': {
+        IM_DIR:
+            '/',
+        ANN_FN:
+            '/mnt/fast-data/mjc/AutoRECIST/Annotations/CUIMC_20201027_z.json'
+    },
+    'PDS_AMGEN_20020408_test': {
+        IM_DIR:
+            '/',
+        ANN_FN:
+            '/mnt/fast-data/mjc/AutoRECIST/Annotations/AMGEN_20020408_20201027_z.json'
+    },
+    'PDS_AMGEN_PRIME_test': {
+        IM_DIR:
+            '/',
+        ANN_FN:
+            '/mnt/fast-data/mjc/AutoRECIST/Annotations/AMGEN_PRIME_20201027_z.json'
+    },
+    'PDS_AMGEN_PRIME_22Cat_train': {
+        IM_DIR:
+            '/',
+        ANN_FN:
+            '/mnt/fast-data/mjc/AutoRECIST/Annotations/AMGEN_PRIME_20201202.json'
+    },
+    'PDS_AMGEN_PRIME_22Cat_test': {
+        IM_DIR:
+            '/',
+        ANN_FN:
+            '/mnt/fast-data/mjc/AutoRECIST/Annotations/AMGEN_PRIME_20201202.json'
+    },
+    'PDS_AMGEN_20020408_22Cat_train': {
+        IM_DIR:
+            '/',
+        ANN_FN:
+            '/mnt/fast-data/mjc/AutoRECIST/Annotations/AMGEN_20020408_20201202.json'
+    },
+    'PDS_AMGEN_20020408_22Cat_test': {
+        IM_DIR:
+            '/',
+        ANN_FN:
+            '/mnt/fast-data/mjc/AutoRECIST/Annotations/AMGEN_20020408_20201202.json'
+    },
+    'PDS_CUIMC_22Cat_train': {
+        IM_DIR:
+            '/',
+        ANN_FN:
+            '/mnt/fast-data/mjc/AutoRECIST/Annotations/CUIMC_20201202.json'
+    },
+    'PDS_CUIMC_22Cat_test': {
+        IM_DIR:
+            '/',
+        ANN_FN:
+            '/mnt/fast-data/mjc/AutoRECIST/Annotations/CUIMC_20201202.json'
+    },
     'lungbinary_1031_train': {
         IM_DIR:
             _DATA_DIR + '/lung_det/rgb_slice_norm1.0/',

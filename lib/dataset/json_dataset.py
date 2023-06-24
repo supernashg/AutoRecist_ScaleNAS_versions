@@ -132,7 +132,7 @@ class JsonDataset(object):
             'are not included.'
         image_ids = self.COCO.getImgIds()
         image_ids.sort()
-        if cfg.DEBUG:
+        if cfg.DEBUG.JSON:
             roidb = copy.deepcopy(self.COCO.loadImgs(image_ids))[:100]
         else:
             roidb = copy.deepcopy(self.COCO.loadImgs(image_ids))
@@ -141,7 +141,7 @@ class JsonDataset(object):
         if gt:
             # Include ground-truth object annotations
             cache_filepath = os.path.join(self.cache_path, self.name+'_gt_roidb.pkl')
-            if os.path.exists(cache_filepath) and not cfg.DEBUG:
+            if os.path.exists(cache_filepath) and not cfg.DEBUG.JSON:
                 self.debug_timer.tic()
                 self._add_gt_from_cache(roidb, cache_filepath)
                 logger.debug(
@@ -156,7 +156,7 @@ class JsonDataset(object):
                     '_add_gt_annotations took {:.3f}s'.
                     format(self.debug_timer.toc(average=False))
                 )
-                if not cfg.DEBUG:
+                if not cfg.DEBUG.JSON:
                     with open(cache_filepath, 'wb') as fp:
                         pickle.dump(roidb, fp, pickle.HIGHEST_PROTOCOL)
                     logger.info('Cache ground truth roidb to %s', cache_filepath)

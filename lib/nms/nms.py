@@ -1,5 +1,8 @@
 # ------------------------------------------------------------------------------
+# Copyright (c) Microsoft
 # Licensed under the MIT License.
+# Modified from py-faster-rcnn (https://github.com/rbgirshick/py-faster-rcnn)
+# Modified by Dave Cheng (dave.cheng@duke.edu) (paicheng@fb.com)
 # ------------------------------------------------------------------------------
 
 from __future__ import absolute_import
