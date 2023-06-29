@@ -1,6 +1,6 @@
 EasyDict==1.7
-opencv-python==3.4.1.15
-shapely==1.6.4
+opencv-python==3.4.10.37
+#shapely==1.6.4
 Cython~=0.29.16
 scipy~=1.4.1
 pandas
@@ -15,4 +15,6 @@ setuptools~=50.3.1
 Pillow~=8.0.1
 matplotlib~=3.2.1
 networkx~=2.4
+pycocotools
+tqdm
 

@@ -6,20 +6,22 @@
 from __future__ import division
 from __future__ import print_function
 
-# In[110]:
-
 import numpy as np
 import pandas as pd
 import pydicom
 import os
-import matplotlib.pyplot as plt
-import collections
-# from tqdm import tqdm_notebook as tqdm
+
 from datetime import datetime
 
 from math import ceil, floor
 import cv2
 import sys
+import os
+import cv2
+import json, yaml
+import numpy as np
+from PIL import Image
+
 # from sklearn.model_selection import ShuffleSplit
 
 def window_image(img, window_center,window_width, intercept, slope):
@@ -86,11 +88,6 @@ def _read(path, desired_size = (512,512)):
     return img
 
 
-
-import os
-import numpy as np
-import pydicom
-
 D_dir2header_df = {}
 
 
@@ -146,7 +143,6 @@ def get_dicom_header_df(image_dir , labels = []):
     return df_image
 
 
-# In[2]:
 
 def InstanceNumber2file_name(df_image, num):
     return df_image.loc[num,'ImageName']
@@ -223,17 +219,6 @@ class ASerial:
     def convert_path(self):
         self.name = '%06d_%02d_%02d'%(self.P, self.D, self.S)
 
-
-
-
-import os
-import cv2
-import json, yaml
-import numpy as np
-from PIL import Image
-# from collections import OrderedDict
-from pycocotools import mask as cocomask
-from pycocotools import coco as cocoapi
 
 
 
@@ -343,23 +328,12 @@ def get_category_id( location , Dict ):
     return Dict[location]
 
 
-# In[4]:
-
 def replace_png_path(s):
     cs = s.replace('AutoRecist/Inputs' , 'AutoRecist/Pngs')
     return cs
 
 
-# In[5]:
 
-import os
-import cv2
-import json, yaml
-import numpy as np
-from PIL import Image
-from collections import OrderedDict
-from pycocotools import mask as cocomask
-from pycocotools import coco as cocoapi
 
 
 class DeepLesion():
@@ -448,7 +422,7 @@ class DeepLesion():
 
             except Exception as e: print(e)
         
-        return images, annotations
+        return images, annotations #For inference, annotations=[] 
             
     
 

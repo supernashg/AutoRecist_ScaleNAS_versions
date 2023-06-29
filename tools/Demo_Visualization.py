@@ -32,12 +32,15 @@ import _init_paths
 
 from config import cfg
 from config import update_config
+import torch.nn.functional as F
+
+import sys
+sys.path.append('/mnt/fast-disk1/mjc/utils_codes/')
 from utils_test import *
 
 import cv2
 from PIL import Image
-import torch.nn.functional as F
-from utils.utils import get_confusion_matrix
+
 def convert_name(name):
     new = name.replace('/','_')
     return new

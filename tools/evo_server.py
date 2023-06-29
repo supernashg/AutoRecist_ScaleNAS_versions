@@ -39,6 +39,8 @@ def parse_args():
                         help='dir of masks',
                         default='./evo_files/masks',
                         type=str)
+    parser.add_argument('--sortIoU',
+                        action='store_true')
 
     args = parser.parse_args()
     return args
@@ -61,6 +63,13 @@ def select_masks(masks, mask_num=100):
                 new_masks.append(masks[i])
         masks = [item for item in masks if item not in new_masks]
         masks = [item for item in masks if item not in new_masks]
+    return new_masks
+
+def sort_masks(masks, mask_num=100):
+    assert len(masks) >= mask_num
+    masks = sorted(masks, key=lambda x: -x[3])
+    new_masks = masks[:mask_num]
+
     return new_masks
 
 
@@ -124,7 +133,13 @@ def main():
                 break  # LOOP-1
 
         cur_masks_num = len(masks_w_ap)
-        masks_w_ap_top = select_masks(masks_w_ap, args.population)
+        if args.sortIoU:
+            masks_w_ap_top = sort_masks(masks_w_ap, args.population)
+            print('selected {} masks by sorting IoU '.format(args.population) )
+        else:
+            masks_w_ap_top = select_masks(masks_w_ap, args.population)
+            print('selected {} masks by Pareto front'.format(args.population) )
+
         print(masks_w_ap_top)
         BASE_DIR = args.masks_dir
         masks_list = []

@@ -25,7 +25,7 @@ import models
 import dataset
 from config import cfg
 from config import update_config
-from core.criterion import CrossEntropy, OhemCrossEntropy
+from core.criterion import CrossEntropy, OhemCrossEntropy, DC_and_CE_loss
 from core.seg_function import train_seg as train
 from core.seg_function import validate_seg as validate
 from core.seg_function import validate_seg_wo_loss as validate_wo_loss
@@ -198,8 +198,12 @@ def main():
                                      min_kept=cfg.LOSS.OHEMKEEP,
                                      weight=train_dataset.class_weights.cuda())
     else:
-        criterion = CrossEntropy(ignore_label=cfg.TRAIN.IGNORE_LABEL,
-                                 weight=train_dataset.class_weights.cuda())
+        # criterion = CrossEntropy(ignore_label=cfg.TRAIN.IGNORE_LABEL,
+        #                          weight=train_dataset.class_weights.cuda())
+
+        criterion = DC_and_CE_loss(soft_dice_kwargs={'batch_dice': True, 'smooth': 1e-5, 'do_bg': False}, ce_kwargs={'weight': train_dataset.class_weights},
+                                  aggregate="sum", square_dice=False, weight_ce=1, weight_dice=1,
+                                  log_dice=False, ignore_label=cfg.TRAIN.IGNORE_LABEL)
     if args.use_kd:
 
         teacher_model = get_teacher_model(cfg, args)

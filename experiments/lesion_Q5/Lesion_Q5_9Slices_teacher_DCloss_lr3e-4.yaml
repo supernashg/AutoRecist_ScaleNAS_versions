@@ -1,0 +1,123 @@
+CUDNN:
+  BENCHMARK: true
+  DETERMINISTIC: false
+  ENABLED: true
+GPUS: (0,1,2,3,4,5)
+OUTPUT_DIR: 'outputlog'
+LOG_DIR: 'outputlog'
+WORKERS: 4
+PRINT_FREQ: 250
+
+DEBUG:
+  JSON: false
+
+LESION:
+  LESION_ENABLED: true
+  MULTI_MODALITY: false
+  NUM_IMAGES_3DCE: 9
+  SLICE_NUM: 9
+
+
+DATASET:
+  DATASET: Lesion
+  ROOT: ' '
+  TEST_SET: ' '
+  TRAIN_SET: ' '
+  NUM_CLASSES: 22
+MODEL:
+  NAME: superscalenet_seg
+  PRETRAINED: 'models/pytorch/imagenet/superscalenet_imagenet_w32.pth'
+  EXTRA:
+    FINAL_CONV_KERNEL: 1
+    STAGE1:
+      NUM_MODULES: 1
+      NUM_RANCHES: 1
+      BLOCK: BOTTLENECK
+      NUM_BLOCKS:
+      - 4
+      NUM_CHANNELS:
+      - 64
+      FUSE_METHOD: SUM
+    STAGE2:
+      NUM_MODULES: 1
+      NUM_BRANCHES: 2
+      DEPTH_LIST: [2,3,4,5]
+      FUSION_PERCENTAGE: 0.5
+      BLOCK: BASIC
+      NUM_BLOCKS:
+      - 5
+      - 5
+      NUM_CHANNELS:
+      - 32
+      - 64
+      FUSE_METHOD: SUM
+    STAGE3:
+      NUM_MODULES: 4
+      NUM_BRANCHES: 3
+      BLOCK: BASIC
+      DEPTH_LIST: [2,3,4,5]
+      FUSION_PERCENTAGE: 0.5
+      NUM_BLOCKS:
+      - 5
+      - 5
+      - 5
+      NUM_CHANNELS:
+      - 32
+      - 64
+      - 128
+      FUSE_METHOD: SUM
+    STAGE4:
+      NUM_MODULES: 3
+      NUM_BRANCHES: 4
+      BLOCK: BASIC
+      DEPTH_LIST: [2,3,4,5]
+      FUSION_PERCENTAGE: 0.5
+      NUM_BLOCKS:
+      - 5
+      - 5
+      - 5
+      - 5
+      NUM_CHANNELS:
+      - 32
+      - 64
+      - 128
+      - 256
+      FUSE_METHOD: SUM
+LOSS:
+  USE_OHEM: false
+
+TRAIN:
+  IMAGE_SIZE:
+  - 512
+  - 512
+  BASE_SIZE: 1024
+  BATCH_SIZE_PER_GPU: 32
+  SHUFFLE: true
+  BEGIN_EPOCH: 0
+  END_EPOCH: 20
+  RESUME: true
+  OPTIMIZER: sgd
+  LR: 0.0003
+  WD: 0.0005
+  MOMENTUM: 0.9
+  NESTEROV: false
+  FLIP: true
+  MULTI_SCALE: true
+  DOWNSAMPLERATE: 1
+  IGNORE_LABEL: 255
+  SCALE_FACTOR: 16
+  GROUP_SAMPLING: false
+  SANDWICH_RULE: false
+  FUSION_OPTIONS: [0.2, 0.5, 0.8]
+  DEPTH_OPTIONS: [[2, 3], [3, 4], [4, 5]]
+  DATASETS: ('PDS_Q5_22Cat_train',)
+VAL:
+  DATASETS: ('PDS_Q5_22Cat_val',)
+TEST:
+  IMAGE_SIZE:
+  - 512
+  - 512
+  BASE_SIZE: 1024
+  BATCH_SIZE_PER_GPU: 32
+  FLIP_TEST: false
+  MULTI_SCALE: false

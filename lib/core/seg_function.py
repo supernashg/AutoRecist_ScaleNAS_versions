@@ -10,7 +10,6 @@ import time
 import logging
 import os
 import random
-import timeit
 
 import numpy as np
 import numpy.ma as ma
@@ -192,7 +191,7 @@ def validate_seg(config, testloader, model, writer_dict, device=None):
     res = confusion_matrix.sum(0)
     tp = np.diag(confusion_matrix)
     IoU_array = (tp / np.maximum(1.0, pos + res - tp))
-    mean_IoU = IoU_array[8]
+    mean_IoU = IoU_array.mean()
     print_loss = ave_loss.average() / world_size
 
     if rank == 0:
@@ -239,7 +238,7 @@ def validate_seg_wo_loss(config, testloader, model, writer_dict, device=None):
     res = confusion_matrix.sum(0)
     tp = np.diag(confusion_matrix)
     IoU_array = (tp / np.maximum(1.0, pos + res - tp))
-    mean_IoU = IoU_array[8]
+    mean_IoU = IoU_array.mean()
 
     if rank == 0:
         writer = writer_dict['writer']
@@ -287,7 +286,7 @@ def testval(config, test_dataset, testloader, model,
                 res = confusion_matrix.sum(0)
                 tp = np.diag(confusion_matrix)
                 IoU_array = (tp / np.maximum(1.0, pos + res - tp))
-                mean_IoU = IoU_array[8]
+                mean_IoU = IoU_array.mean()
                 logging.info('mIoU: %.4f' % (mean_IoU))
 
     pos = confusion_matrix.sum(1)
@@ -296,7 +295,7 @@ def testval(config, test_dataset, testloader, model,
     pixel_acc = tp.sum() / pos.sum()
     mean_acc = (tp / np.maximum(1.0, pos)).mean()
     IoU_array = (tp / np.maximum(1.0, pos + res - tp))
-    mean_IoU = IoU_array[8]
+    mean_IoU = IoU_array.mean()
 
     return mean_IoU, IoU_array, pixel_acc, mean_acc
 
@@ -323,83 +322,3 @@ def test(config, test_dataset, testloader, model,
                 if not os.path.exists(sv_path):
                     os.mkdir(sv_path)
                 test_dataset.save_pred(pred, sv_path, name)
-
-def validate_seg_batchmodels(config, testloader, models, writer_dict, device=None):
-    rank = get_rank()
-
-    CMs = []
-    mIoUs = []
-    for model in models:
-        model.eval()    
-        confusion_matrix = np.zeros(
-            (config.DATASET.NUM_CLASSES, config.DATASET.NUM_CLASSES))
-        CMs.append(confusion_matrix)
-
-    with torch.no_grad():
-        for _, batch in enumerate(testloader):
-            image, label, _, _ = batch
-            size = label.size()
-            if device is None:
-                image = image.cuda()
-                label = label.long().cuda()
-            else:
-                image = image.to(device)
-                label = label.long().to(device)
-
-            for j , model in enumerate(models):
-
-                losses, pred = model(image, label)
-
-                pred = F.upsample(input=pred, size=(
-                    size[-2], size[-1]), mode='bilinear')
-
-                CMs[j] += get_confusion_matrix(
-                    label,
-                    pred,
-                    size,
-                    config.DATASET.NUM_CLASSES,
-                    config.TRAIN.IGNORE_LABEL)      
-
-
-    for confusion_matrix in CMs:
-        if device is None:
-            confusion_matrix = torch.from_numpy(confusion_matrix).cuda()
-        else:
-            confusion_matrix = torch.from_numpy(confusion_matrix).to(device)
-        reduced_confusion_matrix = reduce_tensor(confusion_matrix)
-
-        confusion_matrix = reduced_confusion_matrix.cpu().numpy()
-        pos = confusion_matrix.sum(1)
-        res = confusion_matrix.sum(0)
-        tp = np.diag(confusion_matrix)
-        IoU_array = (tp / np.maximum(1.0, pos + res - tp))
-        mean_IoU = IoU_array[8]
-        mIoUs.append(mean_IoU)
-
-
-    return mIoUs
-
-
-
-"""
-                 start = timeit.default_timer()
-
-                losses, pred = model(image, label)
-                end_loss = timeit.default_timer()
-
-                pred = F.upsample(input=pred, size=(
-                    size[-2], size[-1]), mode='bilinear')
-                end_pred = timeit.default_timer()
-
-                CMs[j] += get_confusion_matrix(
-                    label,
-                    pred,
-                    size,
-                    config.DATASET.NUM_CLASSES,
-                    config.TRAIN.IGNORE_LABEL)      
-
-                end_cm = timeit.default_timer()
-                logger.info('millisec: %f: %f: %f' %( 
-                    (end_loss - start)*1000 , (end_pred - end_loss)*1000 , (end_cm - end_pred)*1000 ))   
-
-"""

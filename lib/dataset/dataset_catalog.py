@@ -51,6 +51,9 @@ def get_data_root_path():
     elif 'medphys' in node_name:
         im_root_path = '/raid/cialab/mjc/AutoRecist/'
         ann_root_path = im_root_path
+    elif 'radgpu' in node_name:
+        im_root_path = '/scratch/mjc/AutoRecist/'
+        ann_root_path = im_root_path
     else:
         print('!Warning by MJC: node_name is unknown so the data_root_path is empty!')
         im_root_path = ann_root_path = ''
